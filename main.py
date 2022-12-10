@@ -61,16 +61,18 @@ def update_branch_protection(branch, repo, has_build_job):
     https://docs.github.com/en/rest/reference/branches#update-branch-protection
     '''
 
-    required_status_checks = None if branch == 'release' else {
+    required_status_checks = {
         'url': f'{API_URL}/repos/{USER}/{repo}/branches/{branch}/protection/required_status_checks',
         'strict': True,
         'checks': [{ 'context': 'build' }] if has_build_job else []
     }
-    
+
     payload = {
         'required_status_checks': required_status_checks,
-        'required_pull_request_reviews': None,
-        'enforce_admins': None,
+        'required_pull_request_reviews': {
+            'required_approving_review_count': 0
+        },
+        'enforce_admins': True,
         'restrictions': None
     }
 
