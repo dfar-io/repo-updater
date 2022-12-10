@@ -1,0 +1,22 @@
+name: Update repo settings
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # every 30 minutes
+    - cron: "*/60 * * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - run: pip3 install --user -r requirements.txt
+      - run: python main.py
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
