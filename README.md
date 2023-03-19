@@ -1,3 +1,6 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/d2c2952ba3ab41823502/maintainability)](https://codeclimate.com/github/dfar-io/repo-updater/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/d2c2952ba3ab41823502/test_coverage)](https://codeclimate.com/github/dfar-io/repo-updater/test_coverage)
+
 # repo-updater
 Updates all my repos with consistent settings
 
