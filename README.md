@@ -16,5 +16,5 @@ For `main`:
 
 1. Require PR.
 2. Require successful status checks.
-  a. Require branch up to date (statuc check = build)
+  a. Require branch up to date (status check = build)
 3. Do not allow bypass.
