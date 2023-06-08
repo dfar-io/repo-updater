@@ -7,6 +7,7 @@ on:
   schedule:
     # every 30 minutes
     - cron: "*/60 * * * *"
+  workflow_dispatch:
 
 jobs:
   build:
