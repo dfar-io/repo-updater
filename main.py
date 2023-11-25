@@ -98,10 +98,6 @@ def contains_build_workflow_runs(repo):
     https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     
-    # Once eventhorizon is using a build step correctly, this should be removed. 2022.10.02
-    if repo == 'eventhorizon':
-        return False
-    
     response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/build.yml/runs')
     return response.status_code == 200
 
