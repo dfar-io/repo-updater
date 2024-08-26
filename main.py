@@ -12,11 +12,28 @@ if GITHUB_PAT is None:
 
 # Modified requests item
 r = requests.Session()
-r.headers.update({'Authorization': f'Bearer {GITHUB_PAT}', 'User-Agent': 'dfar-io'})
+r.headers.update({
+    'Authorization': f'Bearer {GITHUB_PAT}',
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+})
 
 # Configuration values
 API_URL = "https://api.github.com/"
 USER = "dfar-io"
+
+def main():
+    '''Sets all repository settings to consistent settings'''
+    repos = get_repos()
+    print(f'{"Repo" : <50} {"CICD job?" : <10}')
+    for repo in repos:
+        update_repo(repo)
+        main_branch = 'main'
+
+        has_cicd_job = contains_cicd_workflow_runs(repo)
+        update_branch_protection(main_branch, repo, has_cicd_job)
+
+        print(f'{repo : <50} {has_cicd_job : <10}')
 
 def get_repos():
     '''
@@ -42,6 +59,7 @@ def update_repo(repo):
     payload = {
         'has_issues': 'false',
         'has_projects': 'false',
+        'has_wiki': 'false',
         'allow_squash_merge': 'true',
         'allow_merge_commit': 'false',
         'allow_rebase_merge': 'false',
@@ -50,12 +68,13 @@ def update_repo(repo):
         'allow_update_branch': 'true'
     }
     try:
-        response = r.patch(f'{API_URL}repos/{USER}/{repo}', json=payload)
+        url = f'{API_URL}repos/{USER}/{repo}'
+        response = r.patch(url, json=payload)
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         sys.exit(f'Error when updating \'{repo}\' ({response.status_code}): {response.text}')
 
-def update_branch_protection(branch, repo, has_build_job):
+def update_branch_protection(branch, repo, has_cicd_job):
     '''
     Updates branch protections
     https://docs.github.com/en/rest/reference/branches#update-branch-protection
@@ -64,7 +83,7 @@ def update_branch_protection(branch, repo, has_build_job):
     required_status_checks = {
         'url': f'{API_URL}/repos/{USER}/{repo}/branches/{branch}/protection/required_status_checks',
         'strict': True,
-        'checks': [{ 'context': 'build' }] if has_build_job else []
+        'checks': [{ 'context': 'cicd' }] if has_cicd_job else []
     }
 
     payload = {
@@ -92,27 +111,14 @@ def branch_exists(branch, repo):
     response = r.get(f'{API_URL}repos/{USER}/{repo}/branches/{branch}')
     return response.status_code == 200
 
-def contains_build_workflow_runs(repo):
+def contains_cicd_workflow_runs(repo):
     '''
-    Checks if a repo contains 'build.yml' workflow runs
+    Checks if a repo contains 'cicd.yml' workflow runs
     https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     
-    response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/build.yml/runs')
+    response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/cicd.yml/runs')
     return response.status_code == 200
-
-def main():
-    '''Sets all repository settings to consistent settings'''
-    repos = get_repos()
-    for repo in repos:
-        update_repo(repo)
-        main_branch = 'main'
-
-        has_build_job = contains_build_workflow_runs(repo)
-        update_branch_protection(main_branch, repo, has_build_job)
-
-        print(f'{repo : <30} {main_branch : <20}{has_build_job : <10}')
-
 
 if __name__ == "__main__":
     main()

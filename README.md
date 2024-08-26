@@ -1,20 +1,18 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/d2c2952ba3ab41823502/maintainability)](https://codeclimate.com/github/dfar-io/repo-updater/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/d2c2952ba3ab41823502/test_coverage)](https://codeclimate.com/github/dfar-io/repo-updater/test_coverage)
-
 # repo-updater
-Updates all my repos with consistent settings
+Updates all my repos with consistent settings.
 
-## Settings
+## Requirements
 
-1. Turn off all GitHub features except "preserve".
-2. Only allow squash comments in merges.
-3. Always suggest updating.
-4. Allow auto-merge.
-5. Automatically delete head branches after merge.
+1. Fine-grained token with permissions:
+    1. Metadata
 
-For `main`:
+## Configuring
 
-1. Require PR.
-2. Require successful status checks.
-  a. Require branch up to date (status check = build)
-3. Do not allow bypass.
+1. Create Codespace.
+2. Run `python main.py`.
+
+## Troubleshooting
+
+`Error when getting repos (401): {"message":"Bad credentials","documentation_url":"https://docs.github.com/rest","status":"401"}`
+
+Change out the Github token being used in both Actions and Codespaces.
