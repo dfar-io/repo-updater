@@ -2,6 +2,7 @@
 import sys
 import os
 import requests
+import json
 
 # Get personal access token from env. variables
 # Personal access token needs full repo rights.
@@ -28,11 +29,10 @@ def main():
     print(f'{"Repo" : <50} {"CICD job?" : <10} {"TFLint job?" : <10}')
     for repo in repos:
         update_repo(repo)
-        main_branch = 'main'
 
         has_cicd_job = contains_cicd_workflow_runs(repo)
         has_tflint_job = contains_tflint_workflow_runs(repo)
-        update_branch_protection(main_branch, repo, has_cicd_job, has_tflint_job)
+        update_branch_protection(repo, has_cicd_job, has_tflint_job)
 
         print(f'{repo : <50} {has_cicd_job : <10} {has_tflint_job : <10}')
 
@@ -45,7 +45,7 @@ def get_repos():
         response = r.get(f'{API_URL}users/{USER}/repos')
         response.raise_for_status()
     except requests.exceptions.HTTPError:
-        sys.exit(f'Error when getting repos ({response.status_code}): {response.text}')
+        sys.exit(handle_error('Error when getting repos.', response))
 
     # Skip archived repos, these cause issues
     writable_repos = [x for x in response.json() if x['archived'] is False]
@@ -73,7 +73,7 @@ def update_repo(repo):
         response = r.patch(url, json=payload)
         response.raise_for_status()
     except requests.exceptions.HTTPError:
-        sys.exit(f'Error when updating \'{repo}\' ({response.status_code}): {response.text}')
+        sys.exit(handle_error(f'Error when updating \'{repo}\.', response))
 
 def update_branch_protection(branch, repo, has_cicd_job, has_tflint_job):
     '''
@@ -106,8 +106,9 @@ def update_branch_protection(branch, repo, has_cicd_job, has_tflint_job):
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         sys.exit(
-            'Error when updating branch protections for '
-            + f'\'{repo}\':{branch} ({response.status_code}): {response.text}')
+            handle_error(
+                f'Error when updating branch protections for \'{repo}\':{branch}',
+                response))
 
 def branch_exists(branch, repo):
     '''
@@ -134,6 +135,20 @@ def contains_tflint_workflow_runs(repo):
     
     response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/tflint.yml/runs')
     return response.status_code == 200
+
+def handle_error(error_message, res):
+    '''Provides improved error reporting'''
+    fix = ''
+    if (res.status_code == 401):
+        fix = 'Change out the Github token being used in both Actions and Codespaces.'
+
+    payload = {
+        'error_message': error_message,
+        'fix': fix,
+        'response_status': res.status_code,
+        'response_text': res.text
+    }
+    return json.dumps(payload, indent=4)
 
 if __name__ == "__main__":
     main()
