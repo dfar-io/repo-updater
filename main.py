@@ -75,7 +75,7 @@ def update_repo(repo):
     except requests.exceptions.HTTPError:
         sys.exit(handle_error(f'Error when updating \'{repo}\.', response))
 
-def update_branch_protection(branch, repo, has_cicd_job, has_tflint_job):
+def update_branch_protection(repo, has_cicd_job, has_tflint_job):
     '''
     Updates branch protections
     https://docs.github.com/en/rest/reference/branches#update-branch-protection
@@ -87,7 +87,7 @@ def update_branch_protection(branch, repo, has_cicd_job, has_tflint_job):
     if has_tflint_job:
         checks.append({ 'context': 'tflint' })
     required_status_checks = {
-        'url': f'{API_URL}/repos/{USER}/{repo}/branches/{branch}/protection/required_status_checks',
+        'url': f'{API_URL}/repos/{USER}/{repo}/branches/main/protection/required_status_checks',
         'strict': True,
         'checks': checks
     }
@@ -102,12 +102,12 @@ def update_branch_protection(branch, repo, has_cicd_job, has_tflint_job):
     }
 
     try:
-        response = r.put(f'{API_URL}repos/{USER}/{repo}/branches/{branch}/protection', json=payload)
+        response = r.put(f'{API_URL}repos/{USER}/{repo}/branches/main/protection', json=payload)
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         sys.exit(
             handle_error(
-                f'Error when updating branch protections for \'{repo}\':{branch}',
+                f'Error when updating branch protections for \'{repo}\'',
                 response))
 
 def branch_exists(branch, repo):
