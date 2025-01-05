@@ -26,15 +26,15 @@ USER = "dfar-io"
 def main():
     '''Sets all repository settings to consistent settings'''
     repos = get_repos()
-    print(f'{"Repo" : <50} {"CICD job?" : <10} {"TFLint job?" : <10}')
+    print(f'{"Repo" : <50} {"CICD job?" : <10} {"TFPlan job?" : <10}')
     for repo in repos:
         update_repo(repo)
 
         has_cicd_job = contains_cicd_workflow_runs(repo)
-        has_tflint_job = contains_tflint_workflow_runs(repo)
-        update_branch_protection(repo, has_cicd_job, has_tflint_job)
+        has_tfplan_job = contains_tfplan_workflow_runs(repo)
+        update_branch_protection(repo, has_cicd_job, has_tfplan_job)
 
-        print(f'{repo : <50} {has_cicd_job : <10} {has_tflint_job : <10}')
+        print(f'{repo : <50} {has_cicd_job : <10} {has_tfplan_job : <10}')
 
 def get_repos():
     '''
@@ -75,7 +75,7 @@ def update_repo(repo):
     except requests.exceptions.HTTPError:
         sys.exit(handle_error(f'Error when updating \'{repo}\.', response))
 
-def update_branch_protection(repo, has_cicd_job, has_tflint_job):
+def update_branch_protection(repo, has_cicd_job, has_tfplan_job):
     '''
     Updates branch protections
     https://docs.github.com/en/rest/reference/branches#update-branch-protection
@@ -84,8 +84,8 @@ def update_branch_protection(repo, has_cicd_job, has_tflint_job):
     checks = []
     if has_cicd_job:
         checks.append({ 'context': 'cicd' })
-    if has_tflint_job:
-        checks.append({ 'context': 'tflint' })
+    if has_tfplan_job:
+        checks.append({ 'context': 'tfplan' })
     required_status_checks = {
         'url': f'{API_URL}/repos/{USER}/{repo}/branches/main/protection/required_status_checks',
         'strict': True,
@@ -127,13 +127,13 @@ def contains_cicd_workflow_runs(repo):
     response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/cicd.yml/runs')
     return response.status_code == 200
 
-def contains_tflint_workflow_runs(repo):
+def contains_tfplan_workflow_runs(repo):
     '''
-    Checks if a repo contains 'tflint.yml' workflow runs
+    Checks if a repo contains 'tfplan.yml' workflow runs
     https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     
-    response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/tflint.yml/runs')
+    response = r.get(f'{API_URL}repos/{USER}/{repo}/actions/workflows/tfplan.yml/runs')
     return response.status_code == 200
 
 def handle_error(error_message, res):
