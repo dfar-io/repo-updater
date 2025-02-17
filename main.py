@@ -83,7 +83,7 @@ def update_branch_protection(repo, has_cicd_job, has_tfplan_job):
 
     checks = []
     if has_cicd_job:
-        checks.append({ 'context': 'cicd' })
+        checks.append({ 'context': 'build' })
     if has_tfplan_job:
         checks.append({ 'context': 'tfplan' })
     required_status_checks = {
